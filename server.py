@@ -1,36 +1,26 @@
-
-import select  
 import socket
+import os
+import select
 import sys
-from thread import *
 
 def prompt():
     sys.stdout.write('<You> ')
     sys.stdout.flush()
 
- 
-HOST = '127.0.0.1'   # Symbolic name meaning all available interfaces
-PORT = 6746  # Arbitrary non-privileged port
-RECV_BUFFER = 4098
-
- 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-print 'Socket created'
- 
-#Bind socket to local host and port
 try:
-    s.bind((HOST, PORT))
-except socket.error as msg:
-    print 'Bind failed. Error Code : ' + str(msg[0]) + ' Message ' + msg[1]
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+except:
+    print 'Failed to create socket'
     sys.exit()
-     
-print 'Socket bind complete'
- 
-#Start listening on socket
-s.listen(10)
-print 'Socket now listening'
- 
-input = [s, sys.stdin]
+
+PORT = 8096	
+HOST = '0.0.0.0'
+RECV_BUFFER = 4095
+
+server_socket.bind((HOST, PORT))
+server_socket.listen(10)
+
+input = [server_socket, sys.stdin]
 
 print 'Chat Program'
 prompt()
@@ -41,40 +31,45 @@ while 1:
 
     for sock in inputready:
 
-        if sock == s:
-            client, address = s.accept()
+        if sock == server_socket:
+            client, address = server_socket.accept()
             input.append(client)
-            #data = sock.recv(RECV_BUFFER)
-            #if data:
-                #sys.stdout.write(data)
-	elif sock == sys.stdin:
+        elif sock == sys.stdin:
             data = sock.readline()
-            for ss in input:
-               if ss not in(s, sys.stdin):
-                  ss.send(data)
+            for s in input:
+               if s not in(server_socket, sys.stdin):
+                   s.send(data)
         else:
-            data = sock.recv(RECV_BUFFER)
-            if data:
-                #sys.stdout.write(data)
-	        c1=data.split(":")[0]
-		c2=data.split(":")[1]
-	        #b=int(data.split(":")[2])
-           	print "C1 = ",c1
-		print "C2 = ",c2
-           	#print"b=",b
-           	#if sm%2==0:
-                #        b=0
-           	#else:
-                #       b=1
-           	#print"b=",b
+            data1 = sock.recv(int (RECV_BUFFER))
+	   # data2 = sock.recv(int (RECV_BUFFER))
+            if data1:
+		#if data2:
+		#	b=data1+data2
+		#	print b
+		#	if b%2==0:
+		#		sys.stdout.write("b=0")
+		#	else:
+				#sys.stdout.write("b=1")
+		c1=int(data1.split(":")[0])#int(data1[0:2])
+		c2=int(data1.split(":")[1])#int(data1[3:5])
+                print "c1=",c1
+                print "c2=",c2
+		#b=c1+c2;
+                #d=(c1*c2)
+		#if b%2==0:
+		#	sys.stdout.write("b=0")
+		#else:
+		#	sys.stdout.write("b=1")
+			#data +=data
 
-		
-		
+                #if d%2=0
             else:
                 msg = sys.stdin.readline()
-                s.send('\r<Server>: ' + msg)
+                server_socket.send('\r<Server>: ' + msg)
                 prompt()
+	
+	
+		
 
 
-
-s.close()
+server_socket.close()
